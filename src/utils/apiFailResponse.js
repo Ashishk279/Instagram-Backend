@@ -12,7 +12,7 @@ function sendFailResponse(req, res, httpCode = BAD_REQUEST, message, data) {
     if(data){
         data.data = {};
     }
-    res.status(httpCode).send(data);
+   return res.status(httpCode).json(data);
 }
 
 export {sendFailResponse}

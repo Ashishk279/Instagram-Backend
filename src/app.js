@@ -2,10 +2,10 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import { router } from "./routers/index.js"
 import { sendFailResponse } from "./utils/apiFailResponse.js";
-
+import {i18n} from "../src/utils/i18n.js";
 
 const app = express();
-
+app.use(i18n.init)
 app.use(express.json({
     limit: "16kb"
 }))
@@ -19,13 +19,16 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 app.use(function (req, res, next) {
-    if (req.headers && req.headers.lang) {
+    if (req.headers && req.headers.lang && req.headers.lang == 'ar') {
         i18n.setLocale(req.headers.lang)
+       
     } else {
-        i18n.setLocale('en')
+        i18n.setLocale('en') 
     }
     next();
 });
+
+app.use("/api/v1", router)
 
 app.use(function (err, req, res, next) {
     console.error(err);
@@ -37,7 +40,7 @@ app.use(function (err, req, res, next) {
     else res.status(status).send({ status: status, message: err.message });
 });
 
-app.use("/api/v1", router)
+
 
 
 export { app }
