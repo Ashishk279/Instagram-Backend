@@ -1,7 +1,22 @@
 {
-	"greeting": "Hello!",
+    "greeting": "Hello!",
     "invalid_values": "All input values needed for validation",
     "already_exists": "User already exists",
     "error_email": "Error sending email",
-    "send_otp": "Successfully send OTP"
+    "send_otp": "Successfully send OTP",
+    "otp_expired": "OTP is expired",
+    "invalid_otp": "Invalid OTP",
+    "otp_verified": "OTP verified Successfully",
+    "otp_resend": "OTP resend Successfully",
+    "detail_updated": "Details updated Successfully",
+    "invalid_Password": "Invalid Password",
+    "error": "Something went wrong while generating refresh and accress token.",
+    "invalid_user": "User does not exists",
+    "loggedIn": "User loggedIn Successfully",
+    "invalid_Request": "Unauthorized Request",
+    "invalid_token": "Invalid Access token",
+    "logout": "User logout Successfully",
+    "edit_profile": "Something went wrong while edit details",
+    "upload_file": "Something went wrong while uploading File",
+    "user_detail": "Getting user detail Successfully"
 }
