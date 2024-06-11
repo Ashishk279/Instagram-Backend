@@ -72,11 +72,58 @@ const validateLogin = async (inputs) => {
     }
 }
 
+const validatePassword = async (inputs) => {
+    let schema = {}
+    schema = Joi.object().keys({
+        password: Joi.string().min(6).required()
+    })
+    try {
+        await schema.validateAsync(inputs, { abortEarly: false });
+    } catch (validationError) {
+        const errorMessage = validationError.details ? validationError.details.map(detail => detail.message).join(', ') : i18n.__('invalid_values');
+        throw new ApiError(BAD_REQUEST, errorMessage);
+    }
+}
+
+const validatePost = async (inputs) => {
+    let schema = {}
+    schema = Joi.object().keys({
+        title: Joi.string().min(1).required(),
+        body: Joi.string().min(1).required(),
+        status: Joi.string().valid('draft', 'published', 'archived').optional(),
+    })
+    try {
+        await schema.validateAsync(inputs, { abortEarly: false });
+    } catch (validationError) {
+        const errorMessage = validationError.details ? validationError.details.map(detail => detail.message).join(', ') : i18n.__('invalid_values');
+        throw new ApiError(BAD_REQUEST, errorMessage);
+    }
+}
+
+const validateUser = async(inputs) => {
+    let schema = {};
+    schema = Joi.object().keys({
+        username: Joi.string().alphanum().min(3).max(20),
+        fullName: Joi.string().max(50)
+    })
+    try {
+        await schema.validateAsync(inputs, { abortEarly: false });
+    } catch (validationError) {
+        const errorMessage = validationError.details ? validationError.details.map(detail => detail.message).join(', ') : i18n.__('invalid_values');
+        throw new ApiError(BAD_REQUEST, errorMessage);
+    }
+}
+
+
+
 
 export {
     validateSignup,
     validateVerify,
     validateResend,
     validateDetails,
-    validateLogin
+    validateLogin,
+    validatePassword,
+    validatePost,
+    validateUser
 }

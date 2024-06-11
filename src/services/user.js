@@ -1,12 +1,15 @@
 import { User } from "../models/user.model.js"
-import { OTP } from "../models/otp.model.js"
+import { OTP } from "../models/otp.model.js";
+import { Post } from "../models/post.model.js"
 import { ApiError } from "../utils/apiErrors.js"
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR, OK } from "../utils/responseCode.js"
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from "../utils/responseCode.js"
 import { generateOtpEmail, verifyEmailCode } from "./otp.js"
 import { generateAccessAndRefreshToken } from "../utils/generateTokens.js"
 import { i18n } from "../utils/i18n.js";
 import { uploadOnClodinary } from "../utils/cloudinary.js"
-import { comparePasswordUsingBcrypt } from "../utils/utility.js"
+import { hashPasswordUsingBcrypt, comparePasswordUsingBcrypt } from "../utils/utility.js"
+import mongoose from "mongoose";
+import { query } from "express";
 const createUser = async (inputs, hashPassword) => {
     let user;
     user = await User.findOne({ email: inputs.email, isEmailVerified: true });
@@ -74,7 +77,6 @@ const logoutUser = async (inputs) => {
 const updateDetails = async (inputs, user, avatarInLocal) => {
     let existedUser;
     if (avatarInLocal) {
-        console.log(avatarInLocal)
         let profilePicture = await uploadOnClodinary(avatarInLocal)
         if (!profilePicture) throw new ApiError(INTERNAL_SERVER_ERROR, i18n.__("upload_file"))
         existedUser = await User.findByIdAndUpdate(user?._id, { profilePicture: profilePicture.url, bio: inputs.bio })
@@ -89,6 +91,90 @@ const getUserDetails = async (user) => {
     return await User.findById(user._id).lean().select({ password: 0, refreshToken: 0, isEmailVerified: 0 })
 }
 
+const changePicture = async (inputs, avatarInLocal) => {
+    let existedUser;
+    if (avatarInLocal) {
+        console.log(avatarInLocal)
+        let profilePicture = await uploadOnClodinary(avatarInLocal)
+        if (!profilePicture) throw new ApiError(INTERNAL_SERVER_ERROR, i18n.__("upload_file"))
+        existedUser = await User.findByIdAndUpdate(inputs, { profilePicture: profilePicture.url })
+        let updatedUser = await User.findById(existedUser._id).lean().select({ password: 0, refreshToken: 0, isEmailVerified: 0 })
+        return updatedUser
+    } else {
+        throw new ApiError(BAD_REQUEST, i18n.__("not_found"))
+    }
+}
+
+const updatePassword = async (user, inputs) => {
+    let existedUser
+    let hashPassword = await hashPasswordUsingBcrypt(inputs.password)
+    existedUser = await User.findByIdAndUpdate(user, { password: hashPassword })
+}
+const createPost = async (user, inputs, file) => {
+    let newPost;
+    let id;
+    const lastPost = await Post.findOne({ user_id: user }).sort({ id: -1 });
+    id = lastPost ? lastPost.id : 0;
+    if (file) {
+        let uploadPost = await uploadOnClodinary(file);
+        if (!uploadPost) throw new ApiError(INTERNAL_SERVER_ERROR, i18n.__("upload_file"))
+        newPost = await Post.create({ id: id + 1, title: inputs.title, body: inputs.body, post: uploadPost.url, user_id: user, status: inputs.status });
+        return newPost;
+    } else {
+        throw new ApiError(BAD_REQUEST, i18n.__("not_found"))
+    }
+
+}
+
+const deletePost = async (user, id) => {
+    let data = await Post.findOneAndDelete({ user_id: user }, { id: id });
+    if (!data) throw new ApiError(BAD_REQUEST, i18n.__("unknown_data"))
+}
+
+const getPosts = async (user) => {
+    return await Post.find({ user_id: user });
+}
+
+const getPostsStatus = async (user) => {
+    let groupedPosts = await Post.aggregate([
+        {
+            $match: { user_id: new mongoose.Types.ObjectId(user._id) }
+        },
+        {
+            // Separate posts by their status using $facet
+            $facet: {
+                draft: [{ $match: { status: 'draft' } }],
+                published: [{ $match: { status: 'published' } }],
+                archived: [{ $match: { status: 'archived' } }]
+            }
+        }
+    ])
+    return groupedPosts;
+}
+
+const userData = async (inputs) => {
+    let user;
+    if (!(inputs.username || inputs.fullName)) throw new ApiError(BAD_REQUEST, i18n.__("search"))
+    user = await User.aggregate([
+        {
+          $match: {
+            $or: [
+              { username: inputs.username },  
+              { fullName: inputs.fullName } 
+            ]
+          }
+        },
+        {
+          $project: {
+            password: 0, // Exclude password from the results
+            refreshToken: 0,
+            isEmailVerified: 0  
+          }
+        }
+      ]);
+    return user
+}
+
 export {
     createUser,
     verifyOTP,
@@ -96,5 +182,12 @@ export {
     updateDetails,
     loginUser,
     logoutUser,
-    getUserDetails
+    getUserDetails,
+    changePicture,
+    updatePassword,
+    createPost,
+    deletePost,
+    getPosts,
+    getPostsStatus,
+    userData
 }

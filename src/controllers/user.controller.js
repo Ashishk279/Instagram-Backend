@@ -1,6 +1,6 @@
-import { validateSignup, validateVerify, validateResend, validateDetails, validateLogin } from "../validations/user.js";
+import { validateSignup, validateVerify, validateResend, validateDetails, validateLogin, validatePassword, validatePost, validateUser } from "../validations/user.js";
 import { hashPasswordUsingBcrypt } from "../utils/utility.js";
-import { createUser, verifyOTP, resendOtp, updateDetails, loginUser, logoutUser, getUserDetails } from "../services/user.js";
+import { createUser, verifyOTP, resendOtp, updateDetails, loginUser, logoutUser, getUserDetails, changePicture, updatePassword, createPost,deletePost, getPosts, getPostsStatus, userData } from "../services/user.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { OK } from "../utils/responseCode.js";
 import { i18n } from "../utils/i18n.js";
@@ -83,6 +83,80 @@ const getUser = async (req, res, next) => {
         next(error)
     }
 }
+
+const changeProfilePicture = async (req, res, next) => {
+    try {
+        let avatarInLocal = req.file
+        const user = await changePicture(req.user, avatarInLocal.path);
+        return res.status(OK).json(new ApiResponse(OK, user, i18n.__("change_avatar")))
+    } catch (error) {
+        next(error)
+    }
+}
+
+const changePassword = async (req, res, next) => {
+    try {
+        const { newPassword }  = req.body
+        await validatePassword(req.body);
+        await updatePassword(req.user, req.body);
+        return res.status(OK).json(new ApiResponse(OK, {}, i18n.__("change_Password")))
+    } catch (error) {
+        next(error)
+    }
+}
+const createPosts = async (req, res, next) => {
+    try {
+        const { title, body, status }  = req.body
+        let post = req.file
+        await validatePost(req.body);
+        const newPost = await createPost(req.user, req.body, post.path);
+        return res.status(OK).json(new ApiResponse(OK, newPost , i18n.__("post_created")))
+    } catch (error) {
+        next(error)
+    }
+}
+
+const deletePosts = async( req, res, next ) => {
+    try {
+        let id = req.params.id
+        const post = await deletePost(req.user, req.params);
+        return res.status(OK).json(new ApiResponse(OK, {} , i18n.__("post_deleted")))
+    } catch (error) {
+        next(error)
+    }
+}
+
+const getAllPosts = async(req, res, next) => {
+    try {
+        const post = await getPosts(req.user);
+        return res.status(OK).json(new ApiResponse(OK, post , i18n.__("get_posts")))
+    } catch (error) {
+        next(error)
+    }
+}
+
+const postStatus = async(req, res, next) => {
+    try {
+        const post = await getPostsStatus(req.user);
+        return res.status(OK).json(new ApiResponse(OK, post , i18n.__("get_posts")))
+    } catch (error) {
+        next(error)
+    }
+}
+
+const findUser = async(req, res, next) => {
+    try {
+        const {username, fullName} = req.query;
+        await validateUser(req.query);
+        const user = await userData(req.query);
+        return res.status(OK).json(new ApiResponse(OK, user , i18n.__("user_detail")))
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+
 export {
     Signup,
     Verify,
@@ -90,5 +164,12 @@ export {
     editProfile,
     login,
     logout,
-    getUser
+    getUser,
+    changeProfilePicture,
+    changePassword,
+    createPosts,
+    deletePosts,
+    getAllPosts,
+    postStatus,
+    findUser
 }

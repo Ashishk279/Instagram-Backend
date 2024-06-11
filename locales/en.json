@@ -1,7 +1,7 @@
 {
     "greeting": "Hello!",
     "invalid_values": "All input values needed for validation",
-    "already_exists": "User already exists",
+    "already_exists": "The user already exists",
     "error_email": "Error sending email",
     "send_otp": "Successfully send OTP",
     "otp_expired": "OTP is expired",
@@ -18,5 +18,14 @@
     "logout": "User logout Successfully",
     "edit_profile": "Something went wrong while edit details",
     "upload_file": "Something went wrong while uploading File",
-    "user_detail": "Getting user detail Successfully"
+    "user_detail": "Getting user detail Successfully",
+    "not_found": "file not exists",
+    "change_avatar": "Profile Picture updated Successfully",
+    "change_Password": "Password changed Successfully",
+    "post_created": "Post created Successfully",
+    "post_deleted": "Post deleted Successfully",
+    "unknown_data": "Data not exists",
+    "get_posts": "Getting all Posts Successfully",
+    "search": "username or fullName is needed for the search"
+
 }

@@ -3,16 +3,23 @@ import mongoose from "mongoose";
 const postSchema = new mongoose.Schema({
   id: {
     type: Number,
-    required: true,
+    trim: true,
     unique: true,
   },
   title: {
     type: String,
-    required: true,
+    trim: true,
+    default: ""
   },
   body: {
     type: String,
-    required: true,
+    trim: true,
+    default: "",
+  },
+  post: {
+    type: String,
+    trim: true,
+    default: "",
   },
   user_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -32,4 +39,4 @@ const postSchema = new mongoose.Schema({
 // Create the "posts" model
 const Post = mongoose.model('Post', postSchema);
 
-module.exports = Post;
+export { Post }
