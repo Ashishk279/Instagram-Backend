@@ -1,5 +1,5 @@
 import express from 'express';
-import { Signup, Verify, editProfile, getUser, login, logout, resend, changeProfilePicture, changePassword, createPosts, deletePosts, getAllPosts, postStatus, findUser } from "../controllers/user.controller.js"
+import { Signup, Verify, editProfile, getUser, login, logout, resend, changeProfilePicture, changePassword, createPosts, deletePosts, getAllPosts, postStatus, findUser, followUser, unFollowUser, getFollowersOfUser, getUserFollowing, viewContentOfFollowing } from "../controllers/user.controller.js"
 import { upload } from '../middlewares/multer.middleware.js';
 import { verifyJWT } from '../middlewares/auth.middleware.js';
 const userRouter = express.Router();
@@ -18,6 +18,12 @@ userRouter.delete("/posts/:id", verifyJWT, deletePosts)
 userRouter.get("/post", verifyJWT, getAllPosts)
 userRouter.get("/status", verifyJWT, postStatus)
 userRouter.get("/search", verifyJWT, findUser)
+userRouter.post("/follow", verifyJWT, followUser)
+userRouter.delete("/unfollow", verifyJWT, unFollowUser)
+userRouter.get("/followers", verifyJWT, getFollowersOfUser)
+userRouter.get("/following", verifyJWT, getUserFollowing)
+userRouter.get("/following-content", verifyJWT, viewContentOfFollowing)
+
 
 
 export { userRouter }

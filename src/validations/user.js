@@ -114,7 +114,18 @@ const validateUser = async(inputs) => {
     }
 }
 
-
+const validateFollow = async(inputs) => {
+    let schema = {};
+    schema = Joi.object().keys({
+        following_user_id: Joi.string().pattern(/^[0-9a-fA-F]{24}$/).required(),
+    })
+    try {
+        await schema.validateAsync(inputs, { abortEarly: false });
+    } catch (validationError) {
+        const errorMessage = validationError.details ? validationError.details.map(detail => detail.message).join(', ') : i18n.__('invalid_values');
+        throw new ApiError(BAD_REQUEST, errorMessage);
+    }
+}
 
 
 export {
@@ -125,5 +136,6 @@ export {
     validateLogin,
     validatePassword,
     validatePost,
-    validateUser
+    validateUser,
+    validateFollow
 }

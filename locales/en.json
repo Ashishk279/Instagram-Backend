@@ -26,6 +26,13 @@
     "post_deleted": "Post deleted Successfully",
     "unknown_data": "Data not exists",
     "get_posts": "Getting all Posts Successfully",
-    "search": "username or fullName is needed for the search"
-
+    "search": "username or fullName is needed for the search",
+    "user_follow": "User Successfully followed",
+    "error_userId": "User Id is needed",
+    "already_follow": "You already follow this user",
+    "not_exists":"User does not exists",
+    "unfollow":"Unfollowed successfully",
+    "follower": "Getting followers Successfully",
+    "following": "Getting following Successfully",
+    "view_content": "View content Successfully"
 }

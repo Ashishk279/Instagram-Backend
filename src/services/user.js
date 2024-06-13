@@ -8,8 +8,7 @@ import { generateAccessAndRefreshToken } from "../utils/generateTokens.js"
 import { i18n } from "../utils/i18n.js";
 import { uploadOnClodinary } from "../utils/cloudinary.js"
 import { hashPasswordUsingBcrypt, comparePasswordUsingBcrypt } from "../utils/utility.js"
-import mongoose from "mongoose";
-import { query } from "express";
+import { Follow } from "../models/follow.model..js";
 const createUser = async (inputs, hashPassword) => {
     let user;
     user = await User.findOne({ email: inputs.email, isEmailVerified: true });
@@ -113,32 +112,32 @@ const updatePassword = async (user, inputs) => {
 const createPost = async (user, inputs, file) => {
     let newPost;
     let id;
-    const lastPost = await Post.findOne({ user_id: user }).sort({ id: -1 });
-    id = lastPost ? lastPost.id : 0;
+    const lastPost = await Post.findOne({ user_id: user._id }).sort({ postNo: -1 });
+    console.log(lastPost)
+    id = lastPost ? lastPost.postNo : 0;
     if (file) {
         let uploadPost = await uploadOnClodinary(file);
         if (!uploadPost) throw new ApiError(INTERNAL_SERVER_ERROR, i18n.__("upload_file"))
-        newPost = await Post.create({ id: id + 1, title: inputs.title, body: inputs.body, post: uploadPost.url, user_id: user, status: inputs.status });
+        newPost = await Post.create({ postNo: id + 1, title: inputs.title, body: inputs.body, post: uploadPost.url, user_id: user._id, status: inputs.status });
         return newPost;
     } else {
         throw new ApiError(BAD_REQUEST, i18n.__("not_found"))
     }
-
 }
 
 const deletePost = async (user, id) => {
-    let data = await Post.findOneAndDelete({ user_id: user }, { id: id });
+    let data = await Post.findOneAndUpdate({ user_id: user, postNo: id }, { isDeleted: true });
     if (!data) throw new ApiError(BAD_REQUEST, i18n.__("unknown_data"))
 }
 
 const getPosts = async (user) => {
-    return await Post.find({ user_id: user });
+    return await Post.find({ user_id: user, isDeleted: false });
 }
 
 const getPostsStatus = async (user) => {
     let groupedPosts = await Post.aggregate([
         {
-            $match: { user_id: new mongoose.Types.ObjectId(user._id) }
+            $match: { user_id: user._id, isDeleted: false }
         },
         {
             // Separate posts by their status using $facet
@@ -147,7 +146,7 @@ const getPostsStatus = async (user) => {
                 published: [{ $match: { status: 'published' } }],
                 archived: [{ $match: { status: 'archived' } }]
             }
-        }
+        },
     ])
     return groupedPosts;
 }
@@ -157,23 +156,152 @@ const userData = async (inputs) => {
     if (!(inputs.username || inputs.fullName)) throw new ApiError(BAD_REQUEST, i18n.__("search"))
     user = await User.aggregate([
         {
-          $match: {
-            $or: [
-              { username: inputs.username },  
-              { fullName: inputs.fullName } 
-            ]
-          }
+            $match: {
+                $or: [
+                    { username: inputs.username },
+                    { fullName: inputs.fullName }
+                ]
+            }
         },
         {
-          $project: {
-            password: 0, // Exclude password from the results
-            refreshToken: 0,
-            isEmailVerified: 0  
-          }
+            $project: {
+                password: 0, // Exclude password from the results
+                refreshToken: 0,
+                isEmailVerified: 0
+            }
         }
-      ]);
+    ]);
     return user
 }
+
+const createFollow = async (inputs, user) => {
+    let existingFollow;
+    let newFollow;
+    if (!inputs.following_user_id) throw new ApiError(BAD_REQUEST, i18n.__("error_userId"))
+    existingFollow = await Follow.findOne({ following_user_id: inputs.following_user_id, followed_user_id: user._id });
+    if (!existingFollow) {
+        newFollow = await Follow.create({ following_user_id: inputs.following_user_id, followed_user_id: user })
+        return newFollow
+    } else {
+        throw new ApiError(BAD_REQUEST, i18n.__("already_follow"))
+    }
+
+}
+const deleteFollow = async (inputs, user) => {
+    let existingFollow;
+    if (!inputs.following_user_id) throw new ApiError(BAD_REQUEST, i18n.__("error_userId"))
+
+    existingFollow = await Follow.findOneAndDelete({ following_user_id: inputs.following_user_id, followed_user_id: user._id });
+    if (!existingFollow) throw new ApiError(BAD_REQUEST, i18n.__("not_exists"))
+
+}
+
+const getFollower = async (user) => {
+    return await Follow.aggregate([
+        {
+            $match: {
+                following_user_id: user._id
+            }
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'following_user_id',
+                foreignField: "_id",
+                as: "noOfFollowers"
+            }
+        },
+        // {
+        //     $unwind: '$followerDetails'
+        // },
+        {
+            $project: {
+                _id: 0,
+                follower: '$followed_user_id',
+            }
+        }
+
+    ])
+}
+
+const getFollowing = async (user) => {
+    return Follow.aggregate([
+        {
+            $match: {
+                followed_user_id: user._id
+            }
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'followed_user_id',
+                foreignField: "_id",
+                as: "noOfFollowers"
+            }
+        },
+        // {
+        //     $unwind: '$followerDetails'
+        // },
+        {
+            $project: {
+                _id: 0,
+                following: '$following_user_id',
+            }
+        }
+    ])
+}
+
+const getContent = async (user) => {
+    let content = await Follow.aggregate([
+        {
+            $match: { followed_user_id: user._id }
+        },
+        {
+            $lookup: {
+                from: 'posts',
+                localField: 'following_user_id',
+                foreignField: 'user_id',
+                as: 'Posts'
+            }
+        },
+        {
+            $unwind: '$Posts'
+        },
+        {
+            $replaceRoot: {
+                newRoot: '$Posts'
+            }
+        },
+        {
+            $match: {
+                status: 'published',
+                isDeleted: false
+            }
+        },
+        {
+             $lookup:{
+                from: 'users',
+                localField: 'user_id',
+                foreignField: '_id',
+                as: "user"
+             }
+        },
+        {
+            $project: {
+                _id: 1,
+                title: 1,
+                body: 1,
+                post: 1,
+                user_id: 1,
+                status: 1,
+                'user.fullName': 1
+            }
+        }
+    ])
+    return content
+}
+
+
 
 export {
     createUser,
@@ -189,5 +317,10 @@ export {
     deletePost,
     getPosts,
     getPostsStatus,
-    userData
+    userData,
+    createFollow,
+    deleteFollow,
+    getFollower,
+    getFollowing,
+    getContent
 }

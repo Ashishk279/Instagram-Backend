@@ -1,10 +1,11 @@
-import { validateSignup, validateVerify, validateResend, validateDetails, validateLogin, validatePassword, validatePost, validateUser } from "../validations/user.js";
+import { validateSignup, validateVerify, validateResend, validateDetails, validateLogin, validatePassword, validatePost, validateUser, validateFollow } from "../validations/user.js";
 import { hashPasswordUsingBcrypt } from "../utils/utility.js";
-import { createUser, verifyOTP, resendOtp, updateDetails, loginUser, logoutUser, getUserDetails, changePicture, updatePassword, createPost,deletePost, getPosts, getPostsStatus, userData } from "../services/user.js";
+import { createUser, verifyOTP, resendOtp, updateDetails, loginUser, logoutUser, getUserDetails, changePicture, updatePassword, createPost,deletePost, getPosts, getPostsStatus, userData, createFollow, deleteFollow, getFollower, getFollowing,getContent } from "../services/user.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { OK } from "../utils/responseCode.js";
 import { i18n } from "../utils/i18n.js";
 
+// Api for Signup user
 const Signup = async (req, res, next) => {
     try {
         const { username, email, name, password } = req.body;
@@ -18,6 +19,7 @@ const Signup = async (req, res, next) => {
     }
 }
 
+// Api for otp verify
 const Verify = async ( req, res, next) => {
     try {
         const { email, otp } = req.body;
@@ -29,6 +31,7 @@ const Verify = async ( req, res, next) => {
     }
 }
 
+// Api for resent Otp
 const resend = async ( req, res, next ) => {
     try {
         const { email } = req.body;
@@ -40,6 +43,7 @@ const resend = async ( req, res, next ) => {
     }
 }
 
+// Api for login 
 const login = async(req, res, next) => {
     try {
         const { email, password } = req.body;
@@ -55,6 +59,7 @@ const login = async(req, res, next) => {
     }
 }
 
+// Api for logout
 const logout = async(req, res, next) => {
     try{
        const options = await logoutUser(req.user);
@@ -64,6 +69,7 @@ const logout = async(req, res, next) => {
     }
 }
 
+// Api for edit Profile
 const editProfile = async ( req, res, next ) => {
     try{
         const {profilePicture, bio} = req.body
@@ -75,6 +81,8 @@ const editProfile = async ( req, res, next ) => {
         next(error)
     }
 }
+
+// Api for getting user details
 const getUser = async (req, res, next) => {
     try {
         const user = await getUserDetails(req.user);
@@ -84,6 +92,7 @@ const getUser = async (req, res, next) => {
     }
 }
 
+// Api for changing profile picture
 const changeProfilePicture = async (req, res, next) => {
     try {
         let avatarInLocal = req.file
@@ -94,6 +103,7 @@ const changeProfilePicture = async (req, res, next) => {
     }
 }
 
+// Api for change password
 const changePassword = async (req, res, next) => {
     try {
         const { newPassword }  = req.body
@@ -104,6 +114,8 @@ const changePassword = async (req, res, next) => {
         next(error)
     }
 }
+
+// Api for create Post
 const createPosts = async (req, res, next) => {
     try {
         const { title, body, status }  = req.body
@@ -116,16 +128,18 @@ const createPosts = async (req, res, next) => {
     }
 }
 
+// Api for delete post
 const deletePosts = async( req, res, next ) => {
     try {
         let id = req.params.id
-        const post = await deletePost(req.user, req.params);
+        const post = await deletePost(req.user, req.params.id);
         return res.status(OK).json(new ApiResponse(OK, {} , i18n.__("post_deleted")))
     } catch (error) {
         next(error)
     }
 }
 
+// Api for get all post 
 const getAllPosts = async(req, res, next) => {
     try {
         const post = await getPosts(req.user);
@@ -135,6 +149,7 @@ const getAllPosts = async(req, res, next) => {
     }
 }
 
+// Api for getting post according to their status
 const postStatus = async(req, res, next) => {
     try {
         const post = await getPostsStatus(req.user);
@@ -144,6 +159,7 @@ const postStatus = async(req, res, next) => {
     }
 }
 
+// Api for find user
 const findUser = async(req, res, next) => {
     try {
         const {username, fullName} = req.query;
@@ -156,6 +172,59 @@ const findUser = async(req, res, next) => {
     }
 }
 
+// Api for follow user
+const followUser = async( req, res, next) => {
+    try{
+      const {following_user_id } = req.body
+      await validateFollow(req.body);
+      const user = await createFollow(req.body, req.user);
+      return res.status(OK).json(new ApiResponse(OK, user , i18n.__("user_follow")))
+    }catch( error){
+        next(error)
+    }
+}
+
+// Api for unfollow user
+const unFollowUser = async(req, res, next) => {
+    try{
+        const {following_user_id } = req.body
+        await validateFollow(req.body);
+        const user = await deleteFollow(req.body, req.user);
+        return res.status(OK).json(new ApiResponse(OK, user , i18n.__("unfollow")))
+      }catch( error){
+          next(error)
+      }
+}
+
+// Api for getting no of followers of user
+const getFollowersOfUser = async ( req, res, next) => {
+    try{
+        const user = await getFollower( req.user);
+        return res.status(OK).json(new ApiResponse(OK, user , i18n.__("follower")))
+      }catch( error){
+          next(error)
+      }
+}
+
+// Api for getting following of user 
+const getUserFollowing = async(req, res, next) => {
+    try{
+        const user = await getFollowing( req.user);
+        return res.status(OK).json(new ApiResponse(OK, user , i18n.__("following")))
+      }catch( error){
+          next(error)
+      }
+}
+
+// Api for view content posted by people that user follow
+const viewContentOfFollowing = async( req, res, next)=> {
+    try {
+        const user = await getContent( req.user);
+        return res.status(OK).json(new ApiResponse(OK, user , i18n.__("view_content")))
+    } catch (error) {
+        next(error)
+    }
+}
 
 export {
     Signup,
@@ -171,5 +240,11 @@ export {
     deletePosts,
     getAllPosts,
     postStatus,
-    findUser
+    findUser,
+    followUser,
+    unFollowUser,
+    getFollowersOfUser,
+    getUserFollowing,
+    viewContentOfFollowing
+    
 }

@@ -1,10 +1,9 @@
 import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema({
-  id: {
+  postNo: {
     type: Number,
     trim: true,
-    unique: true,
   },
   title: {
     type: String,
@@ -29,6 +28,11 @@ const postSchema = new mongoose.Schema({
     type: String,
     enum: ['draft', 'published', 'archived'], // Example status values
     default: 'draft', // Default status
+  },
+  isDeleted: {
+    type: Boolean,
+    trim: true,
+    default: false,
   },
   created_At: {
     type: Date,
