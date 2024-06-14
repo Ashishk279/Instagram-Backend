@@ -9,6 +9,8 @@ import { i18n } from "../utils/i18n.js";
 import { uploadOnClodinary } from "../utils/cloudinary.js"
 import { hashPasswordUsingBcrypt, comparePasswordUsingBcrypt } from "../utils/utility.js"
 import { Follow } from "../models/follow.model..js";
+import { Like } from "../models/like.model.js";
+import { Comment } from "../models/comment.model.js"
 const createUser = async (inputs, hashPassword) => {
     let user;
     user = await User.findOne({ email: inputs.email, isEmailVerified: true });
@@ -279,12 +281,12 @@ const getContent = async (user) => {
             }
         },
         {
-             $lookup:{
+            $lookup: {
                 from: 'users',
                 localField: 'user_id',
                 foreignField: '_id',
                 as: "user"
-             }
+            }
         },
         {
             $project: {
@@ -301,6 +303,70 @@ const getContent = async (user) => {
     return content
 }
 
+const comment = async (user, inputs, postId) => {
+    let post;
+    let newComment;
+    post = await Post.findById({ _id: postId.postid });
+    if (!post) throw new ApiError(BAD_REQUEST, i18n.__("post_not_exists"))
+    if(!post.isCommentsEnabled) throw new ApiError(BAD_REQUEST, i18n.__("disable_comment"))    
+    newComment = await Comment.create({ postId: postId.postid, userId: user._id, comment: inputs.comment })
+    post = await Post.findByIdAndUpdate({ _id: postId.postid }, {$inc: {commentsCount: 1}})
+    return newComment
+}
+
+const editComment = async (user, inputs, postId) => {
+    let comment;
+    comment = await Comment.findOneAndUpdate({ postId: postId.postid, userId: user._id, isDeleted: false }, { comment: inputs.comment })
+    if (!comment) throw new ApiError(BAD_REQUEST, i18n.__("invalid_comment"))
+    comment = await Comment.findById(comment._id).lean().select({isDeleted: 0})
+    return comment
+}
+
+const removeComment = async (user, postId) => {
+    let comment;
+    comment = await Comment.findOneAndUpdate({ postId: postId.postid, userId: user._id, isDeleted: false }, { isDeleted: true })
+    if (!comment) throw new ApiError(BAD_REQUEST, i18n.__("invalid_comment"))
+    comment = await Comment.findById(comment._id)
+    post = await Post.findByIdAndUpdate({ _id: postId.postid }, {$inc: {commentsCount: -1}})
+}
+
+const like = async (user, postId) => {
+    let post;
+    let newLike;
+    post = await Post.findById({ _id: postId.postid });
+    if (!post) throw new ApiError(BAD_REQUEST, i18n.__("post_not_exists"))
+    newLike = await Like.findOne({
+        postId: postId.postid,
+        userId: user._id,
+        like: true
+    })
+    if (newLike) {
+        throw new ApiError(BAD_REQUEST, i18n.__("alreadyLike"))
+    }
+    else {
+        newLike = await Like.create({ postId: postId.postid, userId: user._id, like: true })
+        post = await Post.findByIdAndUpdate({ _id: postId.postid }, {$inc: {likesCount: 1}})
+        return newLike
+    }
+}
+
+const dislike = async (user, postId) => {
+    let post;
+    let newLike;
+    post = await Post.findById({ _id: postId.postid });
+    if (!post) throw new ApiError(BAD_REQUEST, i18n.__("post_not_exists"))
+    newLike = await Like.findOne({
+        postId: postId.postid,
+        userId: user._id,
+        like: true
+    })
+    if (newLike) {
+        newLike = await Like.findOneAndDelete({ postId: postId.postid, userId: user._id, like: true })
+        post = await Post.findByIdAndUpdate({ _id: postId.postid }, {$inc: {likesCount: -1}})
+    } else {
+        throw new ApiError(BAD_REQUEST, i18n.__("invalid_like"))
+    }
+}
 
 
 export {
@@ -322,5 +388,10 @@ export {
     deleteFollow,
     getFollower,
     getFollowing,
-    getContent
+    getContent,
+    comment,
+    editComment,
+    removeComment,
+    like,
+    dislike,
 }

@@ -34,5 +34,13 @@
     "unfollow":"Unfollowed successfully",
     "follower": "Getting followers Successfully",
     "following": "Getting following Successfully",
-    "view_content": "View content Successfully"
+    "view_content": "View content Successfully",
+    "post_not_exists": "Post not found",
+    "alreadyLike": "Already Liked this post",
+    "comment": "Successfully comment on post",
+    "like": "Successfully like the post",
+    "dislike": "Dislike the post Successfully",
+    "invalid_like": "Like not exists",
+    "invalid_comment": "Comment not exists",
+    "disable_comment": "User disable the comments section"
 }

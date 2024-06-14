@@ -34,6 +34,18 @@ const postSchema = new mongoose.Schema({
     trim: true,
     default: false,
   },
+  isCommentsEnabled: {
+    type: Boolean,
+    default: true,
+  },
+  likesCount: {
+    type: Number,
+    default: 0,
+  },
+  commentsCount: {
+    type: Number,
+    default: 0,
+  },
   created_At: {
     type: Date,
     default: Date.now, // Set the current timestamp as default
