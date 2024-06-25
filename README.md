@@ -1,25 +1,25 @@
-## Social Media Backend
+# Social Media Backend
 This repository contains the backend for a social media application built using Node.js and Express. It includes user authentication, profile management, post creation, commenting, liking, following, and real-time chat functionality using Socket.IO.
 
-# Table of Contents
-Installation
-Configuration
-Usage
-API Endpoints
-WebSocket Events
-Packages Used
-License
+## Table of Contents
+-Installation
+-Configuration
+-Usage
+-API Endpoints
+-WebSocket Events
+-Packages Used
+-License
 
-# Installation
-Clone the repository:
+## Installation
+-Clone the repository:
 git clone https://github.com/Ashishk279/Instagram-Backend
 cd Instagram-Backend
 
-# Install dependencies:
+## Install dependencies:
 npm install
 
-# Create a .env file in the root directory and add the following environment variables:
-# env
+## Create a .env file in the root directory and add the following environment variables:
+## env
 
 PORT=8000
 MONGODB_URL=your_mongodb_connection_string
@@ -38,7 +38,7 @@ EMAIL_USERNAME=your_email_user
 EMAIL_PASSWORD=your_email_password
 
 
-# Configuration
+## Configuration
 bcrypt: For hashing passwords.
 cloudinary: For handling image uploads.
 cookie-parser: For parsing cookies.
@@ -56,15 +56,15 @@ otp-generator: For generating one-time passwords.
 socket.io: For real-time bidirectional event-based communication.
 uuid: For generating unique identifiers.
 
-# Usage
-Start the server:
+## Usage
+-Start the server:
 npm start
 
-Access the server at:
+-Access the server at:
 http://localhost:8000
 
-# API Endpoints
-# User Routes
+## API Endpoints
+## User Routes
 Signup: POST /signup
 Verify Email: POST /verify
 Resend Verification Email: POST /resend
@@ -94,7 +94,7 @@ Like Routes
 Like Post: POST /p/:postid/like (requires JWT)
 Dislike Post: DELETE /p/:postid/dislike (requires JWT)
 
-# Socket.io Events
+## Socket.io Events
 Connection
 Authenticate User: When a user connects, they must be authenticated using a JWT.
 Chat
@@ -104,5 +104,5 @@ Receive Message: Listen for messages in a chat room with receiveMessage.
 Message Received: Acknowledge a message has been read with messageReceived.
 Disconnect from Chat: Leave a chat room with disconnectToChat.
 
-# License
+## License
 This project is licensed under the MIT License. See the LICENSE file for details.
