@@ -1,6 +1,6 @@
 import { validateSignup, validateVerify, validateResend, validateDetails, validateLogin, validatePassword, validatePost, validateUser, validateFollow, validateComment } from "../validations/user.js";
 import { hashPasswordUsingBcrypt } from "../utils/utility.js";
-import { createUser, verifyOTP, resendOtp, updateDetails, loginUser, logoutUser, getUserDetails, changePicture, updatePassword, createPost, deletePost, getPosts, getPostsStatus, userData, createFollow, deleteFollow, getFollower, getFollowing, getContent, comment,editComment, removeComment, like, dislike } from "../services/user.js";
+import { createUser, verifyOTP, resendOtp, updateDetails, loginUser, logoutUser, getUserDetails, changePicture, updatePassword, createPost, deletePost, getPosts, getPostsStatus, userData, createFollow, deleteFollow, getFollower, getFollowing, getContent, comment, editComment, removeComment, like, dislike } from "../services/user.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { OK } from "../utils/responseCode.js";
 import { i18n } from "../utils/i18n.js";
@@ -242,7 +242,7 @@ const commentOnPost = async (req, res, next) => {
 }
 
 // Api for edit comment 
-const editCommentOnPost = async( req, res, next) => {
+const editCommentOnPost = async (req, res, next) => {
     try {
         const postId = req.params;
         const userId = req.user;
@@ -256,7 +256,7 @@ const editCommentOnPost = async( req, res, next) => {
 }
 
 // Api for remove comment 
-const removeCommentOnPost = async( req, res, next) => {
+const removeCommentOnPost = async (req, res, next) => {
     try {
         const postId = req.params;
         const userId = req.user;
@@ -280,7 +280,7 @@ const likeOnPost = async (req, res, next) => {
 }
 
 // Api for dislike on the post 
-const dislikePost = async ( req, res, next) => {
+const dislikePost = async (req, res, next) => {
     try {
         const postId = req.params;
         const userId = req.user;
@@ -290,6 +290,8 @@ const dislikePost = async ( req, res, next) => {
         next(error)
     }
 }
+
+
 
 export {
     Signup,
@@ -315,5 +317,5 @@ export {
     editCommentOnPost,
     removeCommentOnPost,
     likeOnPost,
-    dislikePost
+    dislikePost,
 }

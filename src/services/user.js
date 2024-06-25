@@ -11,6 +11,7 @@ import { hashPasswordUsingBcrypt, comparePasswordUsingBcrypt } from "../utils/ut
 import { Follow } from "../models/follow.model..js";
 import { Like } from "../models/like.model.js";
 import { Comment } from "../models/comment.model.js"
+import { Message } from "../models/message.model.js";
 const createUser = async (inputs, hashPassword) => {
     let user;
     user = await User.findOne({ email: inputs.email, isEmailVerified: true });
@@ -52,6 +53,7 @@ const resendOtp = async (inputs) => {
 const loginUser = async (inputs) => {
     let user;
     user = await User.findOne({ email: inputs.email });
+    console.log(user)
     if (user) {
         let compare = await comparePasswordUsingBcrypt(inputs.password, user.password);
         if (!compare) {
@@ -89,7 +91,85 @@ const updateDetails = async (inputs, user, avatarInLocal) => {
 }
 
 const getUserDetails = async (user) => {
-    return await User.findById(user._id).lean().select({ password: 0, refreshToken: 0, isEmailVerified: 0 })
+    
+     
+    const userDetails = await User.aggregate([
+        {
+            $match: { _id: user._id }
+        },
+        {
+            $lookup: {
+                from: "follows",
+                let: { userId: '$_id' },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ['$following_user_id', '$$userId'] }
+                        }
+                    },
+                   
+                ],
+                as: 'followers'
+            }
+        },
+        {
+            $lookup: {
+                from: 'follows',
+                let: { userId: '$_id' },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ['$followed_user_id', "$$userId"] }
+                        }
+                    },
+                   
+                ],
+                as: "following"
+            }
+
+        },
+        {
+            $lookup: {
+                from: 'posts',
+                let: { userId: '$_id' },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ['$user_id', '$$userId'] }
+                        }
+                    }
+                ],
+                as: 'posts'
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                fullName: 1,
+                email: 1,
+                bio: 1,
+                profilePicture: 1,
+                username: 1,
+                followers: {
+                    $map: {
+                        input: "$followers",
+                        as: 'follower',
+                        in: '$$follower.following_user_id'
+                    }
+                },
+                following: {
+                    $map: {
+                        input: '$following',
+                        as: 'follow',
+                        in: "$$follow.followed_user_id"
+                    }
+                },
+                posts: 1
+            }
+        }
+    ])
+
+    return userDetails
 }
 
 const changePicture = async (inputs, avatarInLocal) => {
@@ -308,9 +388,9 @@ const comment = async (user, inputs, postId) => {
     let newComment;
     post = await Post.findById({ _id: postId.postid });
     if (!post) throw new ApiError(BAD_REQUEST, i18n.__("post_not_exists"))
-    if(!post.isCommentsEnabled) throw new ApiError(BAD_REQUEST, i18n.__("disable_comment"))    
+    if (!post.isCommentsEnabled) throw new ApiError(BAD_REQUEST, i18n.__("disable_comment"))
     newComment = await Comment.create({ postId: postId.postid, userId: user._id, comment: inputs.comment })
-    post = await Post.findByIdAndUpdate({ _id: postId.postid }, {$inc: {commentsCount: 1}})
+    post = await Post.findByIdAndUpdate({ _id: postId.postid }, { $inc: { commentsCount: 1 } })
     return newComment
 }
 
@@ -318,7 +398,7 @@ const editComment = async (user, inputs, postId) => {
     let comment;
     comment = await Comment.findOneAndUpdate({ postId: postId.postid, userId: user._id, isDeleted: false }, { comment: inputs.comment })
     if (!comment) throw new ApiError(BAD_REQUEST, i18n.__("invalid_comment"))
-    comment = await Comment.findById(comment._id).lean().select({isDeleted: 0})
+    comment = await Comment.findById(comment._id).lean().select({ isDeleted: 0 })
     return comment
 }
 
@@ -327,7 +407,7 @@ const removeComment = async (user, postId) => {
     comment = await Comment.findOneAndUpdate({ postId: postId.postid, userId: user._id, isDeleted: false }, { isDeleted: true })
     if (!comment) throw new ApiError(BAD_REQUEST, i18n.__("invalid_comment"))
     comment = await Comment.findById(comment._id)
-    post = await Post.findByIdAndUpdate({ _id: postId.postid }, {$inc: {commentsCount: -1}})
+    post = await Post.findByIdAndUpdate({ _id: postId.postid }, { $inc: { commentsCount: -1 } })
 }
 
 const like = async (user, postId) => {
@@ -345,7 +425,7 @@ const like = async (user, postId) => {
     }
     else {
         newLike = await Like.create({ postId: postId.postid, userId: user._id, like: true })
-        post = await Post.findByIdAndUpdate({ _id: postId.postid }, {$inc: {likesCount: 1}})
+        post = await Post.findByIdAndUpdate({ _id: postId.postid }, { $inc: { likesCount: 1 } })
         return newLike
     }
 }
@@ -362,10 +442,41 @@ const dislike = async (user, postId) => {
     })
     if (newLike) {
         newLike = await Like.findOneAndDelete({ postId: postId.postid, userId: user._id, like: true })
-        post = await Post.findByIdAndUpdate({ _id: postId.postid }, {$inc: {likesCount: -1}})
+        post = await Post.findByIdAndUpdate({ _id: postId.postid }, { $inc: { likesCount: -1 } })
     } else {
         throw new ApiError(BAD_REQUEST, i18n.__("invalid_like"))
     }
+}
+
+const message = async (user, inputs) => {
+    let msg;
+    msg = await Message({ sender: user._id, recipent: inputs.recipent, content: inputs.content });
+    return msg;
+}
+
+const getMessage = async (id, user) => {
+    let message;
+    message = await Message.find({
+        $or: [
+            { sender: user._id, recipient: id },
+            { sender: id, recipient: user._id }
+        ]
+    });
+
+    return message;
+}
+
+const markRead = async (id) => {
+    let message;
+    message = await Message.findByIdAndUpdate({ messageId: id }, { isReaded: true }, { new: true })
+    return message;
+}
+
+
+const deleteMsg = async (id) => {
+    let message;
+    message = await Message.findByIdAndUpdate({ messageId: id, isReaded: true }, { isDeleted: true }, { new: true })
+    return message;
 }
 
 
@@ -394,4 +505,8 @@ export {
     removeComment,
     like,
     dislike,
+    message,
+    getMessage,
+    markRead,
+    deleteMsg
 }

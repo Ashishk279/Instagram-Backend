@@ -42,5 +42,6 @@
     "dislike": "Dislike the post Successfully",
     "invalid_like": "Like not exists",
     "invalid_comment": "Comment not exists",
-    "disable_comment": "User disable the comments section"
+    "disable_comment": "User disable the comments section",
+    "message_send": "Message send Successfully"
 }

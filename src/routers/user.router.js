@@ -1,5 +1,5 @@
 import express from 'express';
-import { Signup, Verify, editProfile, getUser, login, logout, resend, changeProfilePicture, changePassword, createPosts, deletePosts, getAllPosts, postStatus, findUser, followUser, unFollowUser, getFollowersOfUser, getUserFollowing, viewContentOfFollowing, commentOnPost, likeOnPost, dislikePost, editCommentOnPost, removeCommentOnPost } from "../controllers/user.controller.js"
+import { Signup, Verify, editProfile, getUser, login, logout, resend, changeProfilePicture, changePassword, createPosts, deletePosts, getAllPosts, postStatus, findUser, followUser, unFollowUser, getFollowersOfUser, getUserFollowing, viewContentOfFollowing, commentOnPost, likeOnPost, dislikePost, editCommentOnPost, removeCommentOnPost} from "../controllers/user.controller.js"
 import { upload } from '../middlewares/multer.middleware.js';
 import { verifyJWT } from '../middlewares/auth.middleware.js';
 const userRouter = express.Router();
@@ -28,6 +28,5 @@ userRouter.patch("/p/:postid/edit", verifyJWT, editCommentOnPost)
 userRouter.patch("/p/:postid/remove", verifyJWT, removeCommentOnPost)
 userRouter.post("/p/:postid/like", verifyJWT, likeOnPost)
 userRouter.delete("/p/:postid/dislike", verifyJWT, dislikePost)
-
 
 export { userRouter }

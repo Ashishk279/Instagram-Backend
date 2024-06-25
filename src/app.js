@@ -1,11 +1,21 @@
-import express from "express";
+import express from 'express'
 import cookieParser from "cookie-parser";
+import http from 'http'
+import cors from 'cors'; 
 import { router } from "./routers/index.js"
 import { sendFailResponse } from "./utils/apiFailResponse.js";
 import { i18n } from "../src/utils/i18n.js";
 import { ApiError } from "./utils/apiErrors.js";
 
+
 const app = express();
+const server = http.createServer(app);
+
+app.use((req, res, next) => {
+    res.append('Access-Control-Expose-Headers', 'x-total, x-total-pages');
+    next();
+  });
+  app.use(cors());
 app.use(i18n.init)
 app.use(express.json({
     limit: "16kb"
@@ -29,8 +39,8 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.use("/api/v1", router)
 
+app.use("/api/v1", router)
 app.use(function (err, req, res, next) {
     console.error(err);
     const status = err.status || 400;
@@ -51,6 +61,4 @@ app.use(function (err, req, res, next) {
 });
 
 
-
-
-export { app }
+export { server }

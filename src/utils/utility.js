@@ -34,3 +34,7 @@ export const generateRefershToken = async(user) => {
 }
 
 
+export const jwtVerify = async(token) => {
+    return jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+}
+
