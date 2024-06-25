@@ -26,8 +26,8 @@ This repository contains the backend for a social media application built using 
     npm install
 
 3.**Create a .env file in the root directory and add the following environment variables:**
-   .env
-
+   - [.env]
+   ```bash
    PORT=8000
    MONGODB_URL=your_mongodb_connection_string
    DB_NAME=your_db_name_string
@@ -46,7 +46,8 @@ This repository contains the backend for a social media application built using 
 
 
 
-## Configuration
+4. **Configuration:**
+   ```bash
    bcrypt: For hashing passwords.
    cloudinary: For handling image uploads.
    cookie-parser: For parsing cookies.
@@ -74,44 +75,47 @@ This repository contains the backend for a social media application built using 
 
 ## API Endpoints
 1. **User Routes**
-Signup: POST /signup
-Verify Email: POST /verify
-Resend Verification Email: POST /resend
-Login: POST /login
-Logout: POST /logout (requires JWT)
-Edit Profile: POST /details (requires JWT, file upload)
-Get User: GET /getuser (requires JWT)
-Change Profile Picture: POST /changephoto (requires JWT, file upload)
-Change Password: POST /changepassword (requires JWT)
-Post Routes
-Create Post: POST /post (requires JWT, file upload)
-Delete Post: PATCH /posts/:id (requires JWT)
-Get All Posts: GET /post (requires JWT)
-Post Status: GET /status (requires JWT)
-Follow Routes
-Find User: GET /search (requires JWT)
-Follow User: POST /follow (requires JWT)
-Unfollow User: DELETE /unfollow (requires JWT)
-Get Followers: GET /followers (requires JWT)
-Get Following: GET /following (requires JWT)
-View Following Content: GET /following-content (requires JWT)
-Comment Routes
-Comment on Post: POST /p/:postid/comment (requires JWT)
-Edit Comment on Post: PATCH /p/:postid/edit (requires JWT)
-Remove Comment on Post: PATCH /p/:postid/remove (requires JWT)
-Like Routes
-Like Post: POST /p/:postid/like (requires JWT)
-Dislike Post: DELETE /p/:postid/dislike (requires JWT)
+   ```bash
+   Signup: POST /signup
+   Verify Email: POST /verify
+   Resend Verification Email: POST /resend
+   Login: POST /login
+   Logout: POST /logout (requires JWT)
+   Edit Profile: POST /details (requires JWT, file upload)
+   Get User: GET /getuser (requires JWT)
+   Change Profile Picture: POST /changephoto (requires JWT, file upload)
+   Change Password: POST /changepassword (requires JWT)
+   Post Routes
+   Create Post: POST /post (requires JWT, file upload)
+   Delete Post: PATCH /posts/:id (requires JWT)
+   Get All Posts: GET /post (requires JWT)
+   Post Status: GET /status (requires JWT)
+   Follow Routes
+   Find User: GET /search (requires JWT)
+   Follow User: POST /follow (requires JWT)
+   Unfollow User: DELETE /unfollow (requires JWT)
+   Get Followers: GET /followers (requires JWT)
+   Get Following: GET /following (requires JWT)
+   View Following Content: GET /following-content (requires JWT)
+   Comment Routes
+   Comment on Post: POST /p/:postid/comment (requires JWT)
+   Edit Comment on Post: PATCH /p/:postid/edit (requires JWT)
+   Remove Comment on Post: PATCH /p/:postid/remove (requires JWT)
+   Like Routes
+   Like Post: POST /p/:postid/like (requires JWT)
+   Dislike Post: DELETE /p/:postid/dislike (requires JWT)
 
 ## Socket.io Events
-Connection
-Authenticate User: When a user connects, they must be authenticated using a JWT.
-Chat
-Connect to Chat: Join a chat room with connectToChat.
-Send Message: Send a message to a chat room with sendMessage.
-Receive Message: Listen for messages in a chat room with receiveMessage.
-Message Received: Acknowledge a message has been read with messageReceived.
-Disconnect from Chat: Leave a chat room with disconnectToChat.
+1. **Connection**
+   ```bash
+   Authenticate User: When a user connects, they must be authenticated using a JWT.
+   Chat
+   Connect to Chat: Join a chat room with connectToChat.
+   Send Message: Send a message to a chat room with sendMessage.
+   Receive Message: Listen for messages in a chat room with receiveMessage.
+   Message Received: Acknowledge a message has been read with messageReceived.
+   Disconnect from Chat: Leave a chat room with disconnectToChat.
 
 ## License
-This project is licensed under the MIT License. See the LICENSE file for details.
+   ```bash
+   This project is licensed under the MIT License. See the LICENSE file for details.
